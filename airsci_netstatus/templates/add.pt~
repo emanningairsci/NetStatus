@@ -1,0 +1,86 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 STRICT//EN"
+    "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml"
+      xmlns:metal="http://xml.zope.org/namespaces/metal"
+      xmlns:tal="http://xml.zope.org/namespaces/tal"
+      metal:define-macro="layout">
+
+
+<head>
+    <title>Add Host</title>
+    <link rel="shortcut icon" href="${request.static_url('airsci_netstatus:static/Logo.ico')}" />
+    <link rel="stylesheet"
+          href="//netdna.bootstrapcdn.com/bootstrap/3.0.3/css/bootstrap.min.css"/>
+    <link rel="stylesheet"
+          href="//netdna.bootstrapcdn.com/font-awesome/4.0.3/css/font-awesome.css"/>
+    <link rel="stylesheet"
+          href="//cdn.datatables.net/plug-ins/28e7751dbec/integration/bootstrap/3/dataTables.bootstrap.css"/>
+    <script type="text/javascript"
+            src="//code.jquery.com/jquery.min.js"></script>
+    <script type="text/javascript"
+          src="//netdna.bootstrapcdn.com/bootstrap/3.0.3/js/bootstrap.min.js"></script>
+    <link href="http://netdna.bootstrapcdn.com/twitter-bootstrap/2.2.2/css/bootstrap-combined.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="//maxcdn.bootstrapcdn.com/bootstrap/3.2.0/css/bootstrap.min.css">
+    <script src="//maxcdn.bootstrapcdn.com/bootstrap/3.2.0/js/bootstrap.min.js"></script>
+    <link href="http://netdna.bootstrapcdn.com/twitter-bootstrap/2.2.2/css/bootstrap-combined.min.css" rel="stylesheet">
+
+</head>
+<body>
+<div id="main">
+    <div class="container">
+        <div class="row">
+            <h3><a href="http://0.0.0.0:8080"><i class="fa fa-sitemap"></i></a>  AirSci NetStatus</h3>
+            <div metal:define-slot="content">
+            </div>
+        </div>
+    </div>
+
+    <div class="container">
+        <div class="row">
+            <h2><i class="fa fa-plus"></i> Add a host</h2>
+            <div metal:define-slot="content">
+            </div>
+        </div>
+    </div>
+
+	<div class="container" style="width: 75%">
+       <form>
+            <div class="form-group">
+                <label>Hostname</label>
+                <input style="height: 30px" class="form-control" id="new_host"
+                    maxlength="200" name="new_host" 
+                    placeholder="Hostname" type="text"
+                    value="">
+            </div>
+            <div class="form-group">
+                <label>IP Address</label>
+                <input style="height: 30px" class="form-control" id="new_ip"
+                    maxlength="20" name="new_ip" 
+                    placeholder="IP" type="text" 
+                    value="">
+            </div>
+
+            <div class="form-group">
+                <button class="btn btn-success" type="submit"
+                name="submit" onClick="addResults(this.form)">Add
+                </button>
+                <button class="btn btn-danger" type="button"
+                name="delete" onClick="location.href='http://0.0.0.0:8080'">Cancel
+                </button>
+            </div>
+        </form>
+	</div>
+
+    <script>
+    function addResults (form) {
+        var new_host = form.new_host.value;
+        var new_ip = form.new_ip.value;
+        msg = "\n It may take up to 5 minutes for this host to become available on the home page. \nUntil then you can view this host at \n  http://0.0.0.0:8080/" + new_host
+        alert(new_host+ " has been added at IP: " +new_ip+ "\n" + msg);
+        window.open("http://0.0.0.0:8080/"+new_host);
+        return false;
+    }
+    </script>
+
+
+</div>

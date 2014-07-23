@@ -1,0 +1,19 @@
+Metadata-Version: 1.1
+Name: airsci-netstatus
+Version: 0.0
+Summary: airsci_netstatus
+Home-page: https://github.com/niallo/pyramid_mongodb
+Author: Niall O'Higgins
+Author-email: nialljohiggins@gmail.com
+License: UNKNOWN
+Description: airsci_netstatus README
+        
+        
+        
+        
+Keywords: web pyramid pylons mongodb
+Platform: UNKNOWN
+Classifier: Programming Language :: Python
+Classifier: Framework :: Pylons
+Classifier: Topic :: Internet :: WWW/HTTP
+Classifier: Topic :: Internet :: WWW/HTTP :: WSGI :: Application

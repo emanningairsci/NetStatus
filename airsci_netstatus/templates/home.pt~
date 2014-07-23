@@ -1,0 +1,157 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 STRICT//EN"
+    "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml"
+      xmlns:metal="http://xml.zope.org/namespaces/metal"
+      xmlns:tal="http://xml.zope.org/namespaces/tal"
+      metal:define-macro="layout">
+
+<script type="text/javascript">
+function minutes_to_DHM(raw_minutes) {
+    days = Math.floor(raw_minutes/24/60)
+    raw_minutes = raw_minutes - days*60*24
+    hours = Math.floor(raw_minutes/60%24)
+    raw_minutes = raw_minutes - hours*60
+    minutes = raw_minutes
+    if (days == 1 && (hours > 1 || hours == 0)) {
+        time = ""+days+" day, "+hours+ " hours, and "+minutes+ " minutes"
+    } else if(hours == 1 && (days > 1 || days == 0)) {
+        time = ""+days+" days, "+hours+ " hour, and "+minutes+ " minutes"
+    } else if(hours == 1 && days == 1) {
+        time = ""+days+" day, "+hours+ " hour, and "+minutes+ " minutes"
+    } else {
+        time = ""+days+" days, "+hours+ " hours, and "+minutes+ " minutes"
+    }
+    return time
+}
+</script>
+
+
+<head>
+    <title>NetStatus</title>
+    <link rel="shortcut icon" href="${request.static_url('airsci_netstatus:static/Logo.ico')}" />
+    <link rel="stylesheet"
+          href="//netdna.bootstrapcdn.com/bootstrap/3.0.3/css/bootstrap.min.css"/>
+    <link rel="stylesheet"
+          href="//netdna.bootstrapcdn.com/font-awesome/4.0.3/css/font-awesome.css"/>
+    <link rel="stylesheet"
+          href="//cdn.datatables.net/plug-ins/28e7751dbec/integration/bootstrap/3/dataTables.bootstrap.css"/>
+    <script type="text/javascript"
+            src="//code.jquery.com/jquery.min.js"></script>
+    <script type="text/javascript"
+          src="//netdna.bootstrapcdn.com/bootstrap/3.0.3/js/bootstrap.min.js"></script>
+    <link href="http://netdna.bootstrapcdn.com/twitter-bootstrap/2.2.2/css/bootstrap-combined.min.css" rel="stylesheet">
+</head>
+<body>
+<div id="main">
+    <div class="container" style = "float: left">
+        <div class="row" >
+            <h2><i class="fa fa-sitemap"></i> AirSci NetStatus </h2>
+            <div metal:define-slot="content">
+            </div>
+        </div>
+        <div style="width: 75%" class="container" style="float: right">
+            <a href="http://0.0.0.0:8080/add/host" class="btn"><i class="fa fa-plus"></i> Add a Host</a>
+        </div>
+    </div>
+
+
+    <div style="width: 75%" class="container" align="left">
+        <a href="http://0.0.0.0:8080/add/host" class="btn"><i class="fa fa-plus"></i> Add a Host</a>
+    </div>
+
+    <div class="row">
+        <br>
+    </div>
+ 
+   <div style="width: 75%" class="center-block">
+	<table class="table table-striped table-hover" id="offline_host_header">
+            <caption class="text-left"><h3><i class="fa fa-warning"></i> Offline Hosts </h3><caption>
+        </table>
+
+	<table class="table table-striped table-hover" id="offline_hosts">
+	    <thead>
+                    <tr>
+                        <th>Server Name</th>
+                        <th>IP Address</th>
+                        <th>Ping Response</th>
+                        <th>Time Stamp</th>
+			<th>Downtime</th>
+                    </tr>
+            </thead>
+            <tbody>
+            <script type="text/javascript">
+            for (var x = 0; x < ${offline_hosts}.length; x++) {
+                host = ${offline_hosts}[x][0]
+                timestamp = ${offline_hosts}[x][1]
+                raw_downtime = ${offline_hosts}[x][2]
+                ip_addr = ${offline_hosts}[x][3]
+                downtime = minutes_to_DHM(raw_downtime)
+                document.write("                <tr>")
+                document.write("                    <td><a href='http://0.0.0.0:8080/"+host+"'>"+host+"</a></td>")
+                document.write("                    <td>" +ip_addr+ "</td>")
+                document.write("                    <td style='color:red'> Failed </td>")
+                document.write("                    <td>" +timestamp+ "</td>")
+                document.write("                    <td>" +downtime+ "</td>")
+                document.write("                </tr>")
+            }
+            </script>
+            </tbody>
+	</table>
+
+
+        <div class="row">
+            <br>
+        </div>
+
+
+	<table class="table table-striped table-hover" id="online_host_header">
+            <caption class="text-left"><h3><i class="fa fa-check"></i> Online Hosts </h3><caption>
+        </table>
+
+	<table class="table table-striped table-hover" id="online_hosts">
+	    <thead>
+                    <tr>
+                        <th>Server Name</th>
+                        <th>IP Address</th>
+                        <th>Ping Response</th>
+                        <th>Time Stamp </th>
+			<th>Uptime</th>
+                    </tr>
+            </thead>
+            <tbody>
+            <script type="text/javascript">
+            for (var x = 0; x < ${online_hosts}.length; x++) {
+                host = ${online_hosts}[x][0]
+                timestamp = ${online_hosts}[x][1]
+                uptime = minutes_to_DHM(${online_hosts}[x][2])
+                ip_addr = ${online_hosts}[x][3]
+                document.write("                <tr>")
+                document.write("                    <td><a href='http://0.0.0.0:8080/"+host+"'>"+host+"</a></td>")
+                document.write("                    <td>" +ip_addr+ "</td>")
+                document.write("                    <td style='color:green'> Successful </td>")
+                document.write("                    <td>" +timestamp+ "</td>")
+                document.write("                    <td>" +uptime+ "</td>")
+                document.write("                </tr>")
+            }
+            </script>
+            </tbody>
+	</table>
+
+
+        <script type="text/javascript" charset="utf8" src="//cdn.datatables.net/1.10-dev/js/jquery.dataTables.min.js"></script>
+        <script type="text/javascript" charset="utf8" src="//cdn.datatables.net/plug-ins/28e7751dbec/integration/bootstrap/3/dataTables.bootstrap.js"></script>
+        <script type="text/javascript">
+            $(function(){
+                $("#online_hosts").dataTable();
+                $("#offline_hosts").dataTable();
+            });
+        </script>
+
+
+    </div>
+    <div class="row">
+        <br><br>
+    </div>
+</div>
+</body>
+</html>

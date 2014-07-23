@@ -1,0 +1,571 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 STRICT//EN"
+    "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml"
+      xmlns:metal="http://xml.zope.org/namespaces/metal"
+      xmlns:tal="http://xml.zope.org/namespaces/tal"
+      metal:define-macro="layout">
+
+<script type="text/javascript">
+function minutes_to_DHM(raw_minutes) {
+    if (isNaN(raw_minutes)){
+        time = "-----"
+        return time
+    }
+    days = Math.floor(raw_minutes/24/60)
+    raw_minutes = raw_minutes - days*60*24
+    hours = Math.floor(raw_minutes/60%24)
+    raw_minutes = raw_minutes - hours*60
+    minutes = raw_minutes
+    if (days == 1 && (hours > 1 || hours == 0)) {
+        time = ""+days+" day, "+hours+ " hours, and "+minutes+ " minutes"
+    } else if(hours == 1 && (days > 1 || days == 0)) {
+        time = ""+days+" days, "+hours+ " hour, and "+minutes+ " minutes"
+    } else if(hours == 1 && days == 1) {
+        time = ""+days+" day, "+hours+ " hour, and "+minutes+ " minutes"
+    } else {
+        time = ""+days+" days, "+hours+ " hours, and "+minutes+ " minutes"
+    }
+    return time
+}
+</script>
+
+
+<head>
+    <title>${hostname}</title>
+    <link rel="shortcut icon" href="${request.static_url('airsci_netstatus:static/Logo.ico')}" />
+    <link rel="stylesheet"
+          href="//netdna.bootstrapcdn.com/bootstrap/3.0.3/css/bootstrap.min.css"/>
+    <link href="//maxcdn.bootstrapcdn.com/font-awesome/4.1.0/css/font-awesome.min.css" rel="stylesheet">
+    <link rel="stylesheet"
+          href="//cdn.datatables.net/plug-ins/28e7751dbec/integration/bootstrap/3/dataTables.bootstrap.css"/>
+    <script type="text/javascript"
+            src="//code.jquery.com/jquery.min.js"></script>
+    <script type="text/javascript"
+          src="//netdna.bootstrapcdn.com/bootstrap/3.0.3/js/bootstrap.min.js"></script>
+
+    <!-- Heatmap -->
+    <script type="text/javascript" src="//d3js.org/d3.v3.min.js"></script>
+    <script type="text/javascript" src="//cdn.jsdelivr.net/cal-heatmap/3.3.10/cal-heatmap.min.js"></script>
+    <link rel="stylesheet" href="//cdn.jsdelivr.net/cal-heatmap/3.3.10/cal-heatmap.css" />
+
+    <!-- Buttons -->
+    <link href="http://netdna.bootstrapcdn.com/twitter-bootstrap/2.2.2/css/bootstrap-combined.min.css" rel="stylesheet">
+
+    <script type="text/javascript"
+     src="http://cdnjs.cloudflare.com/ajax/libs/jquery/1.8.3/jquery.min.js">
+    </script> 
+    <script type="text/javascript"
+     src="http://netdna.bootstrapcdn.com/twitter-bootstrap/2.2.2/js/bootstrap.min.js">
+    </script>
+
+    <!-- DatePicker -->
+    <link rel="stylesheet" href="//code.jquery.com/ui/1.11.0/themes/smoothness/jquery-ui.css">
+    <script src="//code.jquery.com/jquery-1.10.2.js"></script>
+    <script src="//code.jquery.com/ui/1.11.0/jquery-ui.js"></script>
+    <link rel="stylesheet" href="/resources/demos/style.css">
+
+    <!-- Angular Gauges -->
+    <script src="http://code.highcharts.com/highcharts.js"></script>
+    <script src="http://code.highcharts.com/highcharts-more.js"></script>
+    <script src="http://code.highcharts.com/modules/exporting.js"></script>
+    
+  
+
+</head>
+
+<body>
+<div id="main">
+    <div class="container">
+        <div class="row">
+            <h3><a href="http://0.0.0.0:8080"><i class="fa fa-sitemap"></i></a>     AirSci NetStatus </h3>
+            <div metal:define-slot="content">
+            </div>
+        </div>
+    </div>
+
+    <div class="container">
+        <div class="row">
+            <h2><i class="fa fa-search"></i> Details of ${hostname}</h2>
+            <a class="btn" href="http://0.0.0.0:8080/${hostname}/edit" ><i class="icon-edit"></i> Edit this host</a>
+            <div metal:define-slot="content">
+            </div>
+        </div>
+        <div class="row">
+            <br>
+        </div>
+    </div>
+
+    <div class="container">
+        <div style="float:left" class="text-left"><h3><i class="fa fa-dashboard"></i> Quick Stats </h3><div>
+    </div>
+
+    <div class="container">
+        <div id="totalUpPercent" style="float:left; width: 28%; height: 250px; margin: 0 auto"></div>
+        <div id="dayUpPercent" style="float:right; width: 25%; height: 250px; margin: 0 auto"></div>
+        <div id="weekUpPercent" style="float:center; width: 25%; height: 250px; margin: 0 auto"></div>
+    </div>	
+
+    <script type="text/javascript">
+    $(function () {	
+        $('#totalUpPercent').highcharts({
+    	    chart: {
+    	        type: 'gauge',
+    	        plotBackgroundColor: null,
+    	        plotBackgroundImage: null,
+    	        plotBorderWidth: 0,
+    	        plotShadow: false
+    	    },
+    	    title: {
+    	        text: 'Percent Uptime: All History'
+    	    },
+    	    pane: {
+    	        startAngle: -120,
+    	        endAngle: 120,
+    	        background: [{
+    	            backgroundColor: {
+    	                linearGradient: { x1: 0, y1: 0, x2: 0, y2: 1 },
+       	                stops: [
+    	                    [0, '#FFF'],
+    	                    [1, '#333']
+    	                ]
+    	            },
+    	            borderWidth: 0,
+    	            outerRadius: '109%'
+    	        }, {
+    	            backgroundColor: {
+    	                linearGradient: { x1: 0, y1: 0, x2: 0, y2: 1 },
+    	                stops: [
+    	                    [0, '#333'],
+    	                    [1, '#FFF']
+    	                ]
+    	            },
+    	            borderWidth: 1,
+    	            outerRadius: '107%'
+    	        }, {
+    	            // default background
+    	        }, {
+    	            backgroundColor: '#DDD',
+    	            borderWidth: 0,
+    	            outerRadius: '105%',
+    	            innerRadius: '103%'
+    	        }]
+    	    },
+    	       
+    	    // the value axis
+    	    yAxis: {
+    	        min: 0,
+    	        max: 100,
+    	        
+    	        minorTickInterval: 'auto',
+    	        minorTickWidth: 1,
+    	        minorTickLength: 10,
+    	        minorTickPosition: 'inside',
+    	        minorTickColor: '#2E2E2E',
+    	
+    	        tickPixelInterval: 30,
+    	        tickWidth: 2,
+    	        tickPosition: 'inside',
+    	        tickLength: 15,
+    	        tickColor: '#000',
+    	        labels: {
+    	            step: 2,
+    	            rotation: 'auto'
+    	        },
+    	        title: {
+    	            text: ''
+    	        },
+    	        plotBands: [{
+    	            from: 0,
+    	            to: 60,
+    	            color: '#DF5353' // red
+    	        }, {
+    	            from: 60,
+    	            to: 80,
+    	            color: '#DDDF0D' // yellow
+    	        }, {
+    	            from: 80,
+    	            to: 100,
+    	            color: '#55BF3B' // green
+    	        }]        
+    	    },
+    	
+    	    series: [{
+    	        name: 'Uptime',
+    	        data: [${uptime_percent}[0]],
+    	        tooltip: {
+    	            valueSuffix: '%'
+    	        }
+    	    }]
+    	
+    	});
+    });
+    </script>
+
+    <script type="text/javascript">
+    $(function () {	
+        $('#weekUpPercent').highcharts({
+    	    chart: {
+    	        type: 'gauge',
+    	        plotBackgroundColor: null,
+    	        plotBackgroundImage: null,
+    	        plotBorderWidth: 0,
+    	        plotShadow: false
+    	    },
+    	    title: {
+    	        text: 'Last 7 Days'
+    	    },
+    	    pane: {
+    	        startAngle: -120,
+    	        endAngle: 120,
+    	        background: [{
+    	            backgroundColor: {
+    	                linearGradient: { x1: 0, y1: 0, x2: 0, y2: 1 },
+       	                stops: [
+    	                    [0, '#FFF'],
+    	                    [1, '#333']
+    	                ]
+    	            },
+    	            borderWidth: 0,
+    	            outerRadius: '109%'
+    	        }, {
+    	            backgroundColor: {
+    	                linearGradient: { x1: 0, y1: 0, x2: 0, y2: 1 },
+    	                stops: [
+    	                    [0, '#333'],
+    	                    [1, '#FFF']
+    	                ]
+    	            },
+    	            borderWidth: 1,
+    	            outerRadius: '107%'
+    	        }, {
+    	            // default background
+    	        }, {
+    	            backgroundColor: '#DDD',
+    	            borderWidth: 0,
+    	            outerRadius: '105%',
+    	            innerRadius: '103%'
+    	        }]
+    	    },
+    	       
+    	    // the value axis
+    	    yAxis: {
+    	        min: 0,
+    	        max: 100,
+    	        
+    	        minorTickInterval: 'auto',
+    	        minorTickWidth: 1,
+    	        minorTickLength: 10,
+    	        minorTickPosition: 'inside',
+    	        minorTickColor: '#2E2E2E',
+    	
+    	        tickPixelInterval: 30,
+    	        tickWidth: 2,
+    	        tickPosition: 'inside',
+    	        tickLength: 15,
+    	        tickColor: '#000',
+    	        labels: {
+    	            step: 2,
+    	            rotation: 'auto'
+    	        },
+    	        title: {
+    	            text: ''
+    	        },
+    	        plotBands: [{
+    	            from: 0,
+    	            to: 60,
+    	            color: '#DF5353' // red
+    	        }, {
+    	            from: 60,
+    	            to: 80,
+    	            color: '#DDDF0D' // yellow
+    	        }, {
+    	            from: 80,
+    	            to: 100,
+    	            color: '#55BF3B' // green
+    	        }]        
+    	    },
+    	
+    	    series: [{
+    	        name: 'Uptime',
+    	        data: [${uptime_percent}[1]],
+    	        tooltip: {
+    	            valueSuffix: '%'
+    	        }
+    	    }]
+    	
+    	});
+    });
+    </script>
+
+    <script type="text/javascript">
+    $(function () {	
+        $('#dayUpPercent').highcharts({
+    	    chart: {
+    	        type: 'gauge',
+    	        plotBackgroundColor: null,
+    	        plotBackgroundImage: null,
+    	        plotBorderWidth: 0,
+    	        plotShadow: false
+    	    },
+    	    title: {
+    	        text: 'Last 24 Hours'
+    	    },
+    	    pane: {
+    	        startAngle: -120,
+    	        endAngle: 120,
+    	        background: [{
+    	            backgroundColor: {
+    	                linearGradient: { x1: 0, y1: 0, x2: 0, y2: 1 },
+       	                stops: [
+    	                    [0, '#FFF'],
+    	                    [1, '#333']
+    	                ]
+    	            },
+    	            borderWidth: 0,
+    	            outerRadius: '109%'
+    	        }, {
+    	            backgroundColor: {
+    	                linearGradient: { x1: 0, y1: 0, x2: 0, y2: 1 },
+    	                stops: [
+    	                    [0, '#333'],
+    	                    [1, '#FFF']
+    	                ]
+    	            },
+    	            borderWidth: 1,
+    	            outerRadius: '107%'
+    	        }, {
+    	            // default background
+    	        }, {
+    	            backgroundColor: '#DDD',
+    	            borderWidth: 0,
+    	            outerRadius: '105%',
+    	            innerRadius: '103%'
+    	        }]
+    	    },
+    	       
+    	    // the value axis
+    	    yAxis: {
+    	        min: 0,
+    	        max: 100,
+    	        
+    	        minorTickInterval: 'auto',
+    	        minorTickWidth: 1,
+    	        minorTickLength: 10,
+    	        minorTickPosition: 'inside',
+    	        minorTickColor: '#2E2E2E',
+    	
+    	        tickPixelInterval: 30,
+    	        tickWidth: 2,
+    	        tickPosition: 'inside',
+    	        tickLength: 15,
+    	        tickColor: '#000',
+    	        labels: {
+    	            step: 2,
+    	            rotation: 'auto'
+    	        },
+    	        title: {
+    	            text: ''
+    	        },
+    	        plotBands: [{
+    	            from: 0,
+    	            to: 60,
+    	            color: '#DF5353' // red
+    	        }, {
+    	            from: 60,
+    	            to: 80,
+    	            color: '#DDDF0D' // yellow
+    	        }, {
+    	            from: 80,
+    	            to: 100,
+    	            color: '#55BF3B' // green
+    	        }]        
+    	    },
+    	
+    	    series: [{
+    	        name: 'Uptime',
+    	        data: [${uptime_percent}[2]],
+    	        tooltip: {
+    	            valueSuffix: '%'
+    	        }
+    	    }]
+    	
+    	});
+    });
+    </script>
+
+    <div class="row">
+        <br>
+    </div>
+
+    <div style="width:60%" class="container">
+	<table class="table table-striped table-hover" id="current_status_header">
+	    <thead>
+                    <tr>
+                        <th>Status</th>
+                        <th>Up/Downtime</th>
+                        <th>IP Address</th>
+                        <th>Monitored Services</th>
+                    </tr>
+            </thead>
+            <tbody>
+            <script type="text/javascript">
+            host = ${host_data}[0]
+            status = ${host_data}[1]
+            raw_time = parseInt(${host_data}[2])
+            ip_addr = ${host_data}[3]
+            time = minutes_to_DHM(raw_time)
+            if (${service_data}[0][0] == 'No monitored services') {
+                num_services = 0
+            } else {
+                num_services = ${service_data}.length
+            }
+            document.write("                <tr>")
+            document.write("                    <td>"+status+"</td>")
+            document.write("                    <td>" +time+ "</td>")
+            document.write("                    <td>" +ip_addr+ "</td>")
+            document.write("                    <td>" +num_services+ "</td>")
+            document.write("                </tr>")
+            </script>
+            </tbody>
+        </table>
+    </div>
+
+
+    <div class="container">
+	<caption class="text-left"><h3><i class="fa fa-history"></i> Uptime History </h3><caption>
+        <div class="input-append">
+            <input style="height: 30px" id="datepicker" type="text" placeholder="Week starts on...">
+            <button id="goTo" class="btn"> Go </button>
+        </div>
+    </div>
+
+    <script type="text/javascript">
+      var selDay;
+      var selMonth;
+      var selYear;
+      $(function(){
+        $('#datepicker').datepicker({
+          showOtherMonths: true,
+          selectOtherMonths: true,
+          changeMonth: true,
+          changeYear: true,
+          showButtonPanel: true,
+          onSelect: function() {
+            selDay = $("#datepicker").datepicker('getDate').getDate();
+            selMonth = $("#datepicker").datepicker('getDate').getMonth();
+            selYear = $("#datepicker").datepicker('getDate').getFullYear();
+          },
+        });
+      });
+    </script>
+
+
+
+    <div class="container">
+    <button id="previousWeek" class="btn"><i class="icon-fast-backward"></i> Week</button>
+    <button id="previousDay" class="btn"><i class="icon-step-backward"></i> Day</button>
+    <button id="nextDay" class="btn"> <i class="icon-step-forward"></i></button>
+    <button id="nextWeek" class="btn"> <i class="icon-fast-forward"></i></button>
+    <button id="reset" class="btn"><i class="icon-refresh"></i> Reset</button>
+    </div>
+
+    <div class="row">
+        <br>
+    </div>
+
+    <div class="container">
+        <div id="cal-heatmap"></div>
+    </div>
+    <script type="text/javascript">
+        var cal = new CalHeatMap();
+        cal.init({
+            data: ${history_data},
+            considerMissingDataAsZero: false,
+            domain: "day",
+            domainLabelFormat: "%A, %B %d",
+            subDomain: "x_hour",
+            subDomainTextFormat: "%H",
+            start: new Date(new Date().setDate(new Date().getDate()-6)), //end the week on today
+            range: 7, //show the last week
+            highlight: "now",
+            itemName: ["online minute"],
+            cellSize: 27,
+            cellPadding: 1,
+            domainMargin: 1,
+            tooltip: true,
+            legend: [5, 15, 25, 35, 45, 55],
+            legendColors: {
+                min: "#E6E6E6",
+                max: "green",
+                empty: "red",
+            },
+            legendTitleFormat: {
+                lower: "No data available", //assuming the ping interval is equal to the lowest legend value
+            },
+            legendCellSize: 18,
+            legendCellPadding: 1, 
+            animationDuration: 250,                  
+        });
+        $("#reset").on("click", function(event){
+            cal.rewind(); 
+        });
+        $("#previousWeek").on("click", function(event){
+            cal.previous(7); 
+        });
+        $("#previousDay").on("click", function(event){
+            cal.previous(1); 
+        });
+        $("#nextDay").on("click", function(event){
+            cal.next(1); 
+        });
+        $("#nextWeek").on("click", function(event){
+            cal.next(7); 
+        });
+        $("#goTo").on("click", function(event){
+            cal.jumpTo(new Date(selYear, selMonth, selDay), true); 
+        });
+    </script>
+
+    <div class="row">
+        <br><br>
+    </div>
+    <div class="container">
+        <caption class="text-left"><h3><i class="fa fa-cogs"></i> Services </h3><caption>
+	<table class="table table-striped table-hover" id="services_table" align="left" style="width: 75%"  style="table-layout: fixed">
+	    <thead>
+                    <tr>
+                        <th>Service Name</th>
+                        <th>Service Type</th>
+                        <th>Status</th>
+                        <th>Up/Downtime</th>
+                    </tr>
+            </thead>
+            <tbody>
+            <script type="text/javascript">
+            for (var x = 0; x < ${service_data}.length; x++) {
+                service_name = ${service_data}[x][0]
+                service_status = ${service_data}[x][1]
+                service_type = ${service_data}[x][2]
+                service_uptime = minutes_to_DHM(${service_data}[x][3])
+                service_downtime = minutes_to_DHM(${service_data}[x][4]) 
+                if (service_status == "True") {
+                    service_status = 'Running'
+                    service_time = service_uptime
+                } else if (service_status == 'False') {
+                    service_status = 'Not Running'
+                    service_time = service_downtime
+                } else { service_time = service_uptime }
+                document.write("                <tr>")
+                document.write("                    <td>"+service_name+ "</td>")
+                document.write("                    <td>"+service_type+ "</td>")
+                document.write("                    <td>"+service_status+"</td>")
+                document.write("                    <td>"+service_time+"</td>")
+                document.write("                </tr>")
+            }
+            </script>
+            </tbody>
+	</table>
+    </div>
+</div>
+</body>
+</html>

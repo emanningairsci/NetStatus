@@ -1,0 +1,121 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 STRICT//EN"
+    "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml"
+      xmlns:metal="http://xml.zope.org/namespaces/metal"
+      xmlns:tal="http://xml.zope.org/namespaces/tal"
+      metal:define-macro="layout">
+
+
+<head>
+    <title>Edit ${hostname}</title>
+    <link rel="shortcut icon" href="${request.static_url('airsci_netstatus:static/Logo.ico')}" />
+    <link rel="stylesheet"
+          href="//netdna.bootstrapcdn.com/bootstrap/3.0.3/css/bootstrap.min.css"/>
+    <link rel="stylesheet"
+          href="//netdna.bootstrapcdn.com/font-awesome/4.0.3/css/font-awesome.css"/>
+    <link rel="stylesheet"
+          href="//cdn.datatables.net/plug-ins/28e7751dbec/integration/bootstrap/3/dataTables.bootstrap.css"/>
+    <script type="text/javascript"
+            src="//code.jquery.com/jquery.min.js"></script>
+    <script type="text/javascript"
+          src="//netdna.bootstrapcdn.com/bootstrap/3.0.3/js/bootstrap.min.js"></script>
+    <link href="http://netdna.bootstrapcdn.com/twitter-bootstrap/2.2.2/css/bootstrap-combined.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="//maxcdn.bootstrapcdn.com/bootstrap/3.2.0/css/bootstrap.min.css">
+    <script src="//maxcdn.bootstrapcdn.com/bootstrap/3.2.0/js/bootstrap.min.js"></script>
+</head>
+<body>
+<div id="main">
+    <div class="container">
+        <div class="row">
+            <h3><a href="http://0.0.0.0:8080"><i class="fa fa-sitemap"></i></a> AirSci NetStatus </h3>
+            <div metal:define-slot="content">
+            </div>
+        </div>
+    </div>
+
+    <div class="container">
+        <div class="row">
+            <h2><i class="fa fa-edit"></i> Edit ${hostname}</h2>
+            <div metal:define-slot="content">
+            </div>
+        </div>
+    </div>
+
+
+
+    <div class="container" style="width: 75%">
+       <form>
+            <div class="form-group">
+                <label>Host Name</label>
+                <input style="height: 30px" class="form-control" id="new_hostname"
+                    maxlength="200" name="new_hostname" 
+                    placeholder="Hostname" type="text"
+                    value="${hostname}">
+            </div>
+            <div class="form-group">
+                <label>IP Address</label>
+                <input style="height: 30px" class="form-control" id="ip_addr"
+                    maxlength="20" name="new_ip_addr" 
+                    placeholder="IP" type="text" 
+                    value=''>
+	    <script type="text/javascript">
+	        document.getElementById('ip_addr').value = ${host_data}[3];
+	    </script>
+
+            </div>
+            <div class="form-group">
+                <label>Service</label>
+                <input style="height: 30px" class="form-control" id="service"
+                    maxlength="20" name="new_service" 
+                    placeholder="Service Name" type="text" 
+                    value=''>
+            </div>
+            <div class="checkbox">
+                <label>
+                <input type="checkbox" name="remove_service"> remove this service (the 'Service Name' above should match the service you want to remove)
+                </label>
+            </div>
+            <div class="form-group">
+                <label> Service Type </label>
+                <select class="form-control" name="new_serv_type">
+                <option>HTTP</option>
+                <option>HTTPS</option>
+                <option>SQL</option>
+                <option>MSSQL</option>
+                <option>PGSQL</option>
+                </select>
+            </div>
+            <div> <br> </div>
+
+            <div class="form-group">
+                <button id="save" class="btn btn-success" type="submit"
+                name="save" onClick="saveHost(this.form)">Save
+                </button>
+                <button id="delete" class="btn btn-danger" type="submit"
+                name="delete" onClick="return deleteHost(this.form)">Delete this host
+                </button>
+                <button id="cancel" class="btn btn-primary" type="button"
+                name="delete" onClick="location.href='http://0.0.0.0:8080/${hostname}'">Back to ${hostname}
+                </button>
+            </div>
+            <script type="text/javascript">
+            function deleteHost(form){
+                var answer = confirm('Are you sure you want to delete this host and all its data?');
+                if(answer){
+                    return true
+                }else {return false}
+            }
+            function saveHost (form){
+                new_hostname = form.new_hostname.value;
+                msg = "\n It may take up to 5 minutes for your changes to be available on this host's page.";
+                alert("The host has been updated!\n" + msg);
+                return false
+            }
+            </script>
+
+        </form>
+	</div>
+
+
+
+</div>
